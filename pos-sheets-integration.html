@@ -21,6 +21,21 @@
             }
         }
     </script>
+
+    <!-- Add this at the top of pos-sheets-integration.html head section -->
+    <script>
+        // Check if logged in
+        const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+        if (isLoggedIn !== 'true') {
+            window.location.href = 'index.html'; // Redirect to login if not logged in
+        }
+        
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
     <style>
         .sidebar-transition { transition: width 0.3s ease; }
         .main-content-shift { transition: margin-left 0.3s ease; }

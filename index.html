@@ -133,7 +133,7 @@
         // Check if user is already logged in
         const isLoggedIn = sessionStorage.getItem('isLoggedIn');
         if (isLoggedIn === 'true') {
-            // If already logged in, redirect to dashboard
+            // If already logged in, redirect to POS dashboard
             window.location.href = 'pos-sheets-integration.html';
         }
 
@@ -177,7 +177,7 @@
                     sessionStorage.setItem('isLoggedIn', 'true');
                     showSuccess();
                     setTimeout(() => {
-                        window.location.href = 'POSAdmin.html';
+                        window.location.href = 'pos-sheets-integration.html';
                     }, 2000);
                 } else {
                     showError('Invalid mobile number. Please try again.');
