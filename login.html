@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                   colors: {
+                        primary: '#8B2635',
+                        secondary: '#A53860',
+                        light: '#fef5f8',
+                        dark: '#faf0e6'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #8B2635 0%, #A53860 100%);
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(254, 245, 248, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg flex items-center justify-center p-4">
+    <!-- Login Container -->
+    <div id="loginContainer" class="w-full max-w-md">
+        <!-- Login Form -->
+        <div id="loginForm" class="glass-effect rounded-2xl p-8 shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 mx-auto mb-4 bg-light rounded-full flex items-center justify-center shadow-lg">
+                    <svg class="w-10 h-10 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+                <p class="text-light/80">Enter your mobile number to continue</p>
+            </div>
+
+            <form id="mobileLoginForm" class="space-y-6">
+                <div class="space-y-2">
+                    <label for="mobileNumber" class="block text-light font-medium">Mobile Number</label>
+                    <div class="relative">
+                        <input 
+                            type="tel" 
+                            id="mobileNumber" 
+                            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-light/50 focus:outline-none focus:ring-2 focus:ring-light focus:border-transparent transition-all duration-300"
+                            placeholder="Enter your mobile number"
+                            maxlength="10"
+                            required
+                        >
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="w-5 h-5 text-light/60" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="errorMessage" class="text-red-300 text-sm hidden"></div>
+                </div>
+
+                <button 
+                    type="submit" 
+                    id="loginBtn"
+                    class="w-full py-3 bg-light text-primary font-semibold rounded-lg hover:bg-white transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary"
+                >
+                    <span id="loginBtnText">Login</span>
+                    <span id="loginSpinner" class="hidden">
+                        <svg class="inline w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Logging in...
+                    </span>
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-light/60 text-sm">Secure login with mobile verification</p>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <div id="successMessage" class="glass-effect rounded-2xl p-8 shadow-2xl hidden text-center">
+            <div class="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Login Successful!</h2>
+            <p class="text-light/80 mb-4">Welcome! Redirecting to your dashboard...</p>
+            <div class="flex justify-center">
+                <div class="w-8 h-8 border-4 border-light border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Valid mobile numbers for demo (you can modify these)
+        const validNumbers = ['1234567890', '9876543210', '1111111111', '0000000000'];
+        
+        const loginForm = document.getElementById('mobileLoginForm');
+        const mobileInput = document.getElementById('mobileNumber');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        const loginSpinner = document.getElementById('loginSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+        const loginContainer = document.getElementById('loginContainer');
+        const successMessage = document.getElementById('successMessage');
+
+        // Check if user is already logged in
+        const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+        if (isLoggedIn === 'true') {
+            // If already logged in, redirect to dashboard
+            window.location.href = 'pos-sheets-integration.html';
+        }
+
+        // Format mobile number input
+        mobileInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value;
+            
+            // Clear error when user starts typing
+            if (errorMessage.classList.contains('fade-in')) {
+                errorMessage.classList.add('hidden');
+                errorMessage.classList.remove('fade-in');
+                mobileInput.classList.remove('shake');
+            }
+        });
+
+        // Handle form submission
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const mobileNumber = mobileInput.value.trim();
+            
+            // Validation
+            if (!mobileNumber) {
+                showError('Please enter your mobile number');
+                return;
+            }
+            
+            if (mobileNumber.length !== 10) {
+                showError('Mobile number must be 10 digits');
+                return;
+            }
+            
+            // Show loading state
+            showLoading(true);
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                if (validNumbers.includes(mobileNumber)) {
+                    // Save login state and redirect
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    showSuccess();
+                    setTimeout(() => {
+                        window.location.href = 'POSAdmin.html';
+                    }, 2000);
+                } else {
+                    showError('Invalid mobile number. Please try again.');
+                    showLoading(false);
+                }
+            }, 1500);
+        });
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+            errorMessage.classList.add('fade-in');
+            mobileInput.classList.add('shake');
+            
+            // Remove shake animation after it completes
+            setTimeout(() => {
+                mobileInput.classList.remove('shake');
+            }, 500);
+        }
+
+        function showLoading(show) {
+            if (show) {
+                loginBtnText.classList.add('hidden');
+                loginSpinner.classList.remove('hidden');
+                loginBtn.disabled = true;
+                loginBtn.classList.add('opacity-75');
+            } else {
+                loginBtnText.classList.remove('hidden');
+                loginSpinner.classList.add('hidden');
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('opacity-75');
+            }
+        }
+
+        function showSuccess() {
+            // Hide login form
+            document.getElementById('loginForm').classList.add('hidden');
+            
+            // Show success message
+            successMessage.classList.remove('hidden');
+            successMessage.classList.add('fade-in');
+        }
+    </script>
+</body>
+</html>

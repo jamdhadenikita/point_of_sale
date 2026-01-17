@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS System - Bakery Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8B2635',
+                        secondary: '#A53860',
+                        light: '#fef5f8',
+                        dark: '#faf0e6'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-transition { transition: width 0.3s ease; }
+        .main-content-shift { transition: margin-left 0.3s ease; }
+        .modal { display: none; }
+        .modal.show { display: flex; }
+        .product-card { transition: all 0.2s ease; }
+        .product-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .receipt-print {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 80mm;
+            max-width: 80mm;
+            padding: 10mm;
+            box-sizing: border-box;
+        }
+        @media print {
+            @page { size: 80mm auto; margin: 0; }
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 80mm; font-size: 12px; margin: 0; padding: 10mm; }
+        }
+        .loader {
+            display: none;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #8B2635;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+            margin: 10px auto;
+            position: relative;
+            z-index: 10;
+        }
+        .loader.show { display: block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .modal-content-disabled { opacity: 0.5; pointer-events: none; }
+        .discount-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ef4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 overflow-x-hidden">
+    <!-- SIDEBAR AND NAVIGATION (same as original) -->
+    <div class="fixed left-0 top-0 bg-dark text-white w-64 h-full flex-shrink-0 hidden md:flex flex-col sidebar-transition z-30" id="sidebar">
+        <div class="p-4 border-b border-gray-700">
+            <div><h2 class="text-xl font-bold text-primary">TheHome Bakery</h2><p class="text-sm text-gray-500">by Anjali</p></div>
+        </div>
+        <nav class="flex-1 p-4 overflow-y-auto">
+            <ul class="space-y-2"><li><a href="#" class="flex items-center space-x-3 p-3 rounded-lg bg-primary text-dark font-medium"><i class="fas fa-cash-register"></i><span>POS System</span></a></li></ul>
+        </nav>
+        <div class="p-4 border-t border-gray-700">
+            <a href="/login.html" id="logoutBtn" class="hover:text-white text-gray-800 flex items-center space-x-3 p-3 rounded-lg border border-gray-500 hover:bg-primary"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+        </div>
+    </div>
+
+    <div class="flex-1 ml-0 md:ml-64 main-content-shift">
+        <nav class="bg-white shadow-sm border-b px-6 py-4 sticky top-0 z-20">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold text-gray-800">POS System</h1>
+                    <button id="refreshProducts" class="bg-primary text-dark px-3 py-1 rounded-lg hover:bg-secondary hover:text-white text-sm"><i class="fas fa-sync-alt mr-1"></i>Refresh Data</button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-600">Cashier: Admin</span>
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center"><i class="fas fa-user text-white text-sm"></i></div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white rounded-lg shadow-sm p-5">
+                    <h2 class="text-xl font-semibold mb-4">Product Search</h2>
+                    <div class="relative mb-4">
+                        <input type="text" id="productSearch" placeholder="Search products..." class="w-[60%] p-3 pl-10 border rounded-lg">
+                        <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <!-- <button class="category-btn active bg-primary text-dark px-4 py-2 rounded-lg" data-category="all">All</button>
+                        <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="CAKE">Cakes</button>
+                        <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="PASTRY">Electronics</button>
+                        <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="COOKIE">Vegetables</button> -->
+                        <!-- <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="DESSERT">Desserts</button>
+                        <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="BEVERAGE">Beverages</button>
+                        <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="PROPZ">Props</button> -->
+                    </div>
+                    <div id="loadingProducts" class="text-center py-8" style="display:none;"><div class="loader show mx-auto"></div><p class="text-gray-600 mt-4">Loading products...</p></div>
+                    <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 h-[600px] overflow-y-auto"></div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-xl font-semibold mb-4">Shopping Cart</h2>
+                    <div id="cartItems" class="mb-6 max-h-64 overflow-y-auto"></div>
+                    <div class="border-t pt-4 mb-6">
+                        <div class="flex justify-between mb-2"><span>Subtotal:</span><span id="subtotal">₹0.00</span></div>
+                        <div class="flex justify-between mb-2"><span>Discount:</span><span id="discountAmount">₹0.00</span></div>
+                        <div class="flex justify-between mb-2"><span>GST (5%):</span><span id="gstAmount">₹0.00</span></div>
+                        <div class="border-t pt-2 flex justify-between font-bold text-lg"><span>Total:</span><span id="total" class="text-primary">₹0.00</span></div>
+                    </div>
+                    <div class="mb-6">
+                        <div class="flex gap-2">
+                            <input type="text" id="customerName" placeholder="Customer Name" class="w-full p-3 border rounded-lg mb-2">
+                            <input type="text" id="tableNumber" placeholder="Table" class="w-[88px] p-3 border rounded-lg mb-2">
+                        </div>
+                        <input type="text" id="customerMobile" placeholder="Mobile" class="w-full p-3 border rounded-lg mb-2">
+                        <div class="flex gap-2">
+                            <input type="number" id="discount" placeholder="Discount" class="w-full p-3 border rounded-lg">
+                            <select id="discountType" class="w-[100px] p-3 border rounded-lg"><option value="percent">%</option><option value="fixed">Rs</option></select>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <h3 class="font-semibold mb-3">Payment Method</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="payment-method active bg-primary text-dark p-3 rounded-lg" data-method="cash"><i class="fas fa-money-bill-wave"></i><span class="text-sm">Cash</span></button>
+                            <button class="payment-method bg-gray-200 p-3 rounded-lg" data-method="upi"><i class="fab fa-google-pay"></i><span class="text-sm">UPI</span></button>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <button id="processPayment" class="w-full bg-green-700 text-white p-4 rounded-lg font-semibold disabled:bg-gray-400" disabled><i class="fas fa-credit-card mr-2"></i>Process Payment</button>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="clearCart" class="bg-red-700 text-white p-2 rounded-lg"><i class="fas fa-trash mr-1"></i>Clear</button>
+                            <button id="printReceipt" class="bg-gray-700 text-white p-2 rounded-lg"><i class="fas fa-print mr-1"></i>Receipt</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 modal items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div class="text-center">
+                <i class="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
+                <h3 class="text-xl font-semibold mb-2">Processing Payment</h3>
+                <p class="text-gray-600 mb-4">Please wait...</p>
+                <div class="bg-gray-200 rounded-full h-2"><div id="progressBar" class="bg-primary h-2 rounded-full" style="width:0%"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="receiptModal" class="fixed inset-0 bg-black bg-opacity-50 modal items-center justify-center z-50">
+        <div class="bg-white overflow-y-auto h-[520px] rounded-lg p-6 max-w-md w-full mx-4 flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Receipt</h3>
+                <button id="closeReceipt" class="text-gray-500"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="receiptContent" class="receipt-print text-sm border p-4 mb-4"></div>
+            <div class="flex space-x-2">
+                <button id="printReceiptBtn" class="flex-1 bg-primary text-dark p-2 rounded-lg"><i class="fas fa-print mr-1"></i>Print</button>
+                <button id="submitReceiptBtn" class="flex-1 bg-green-700 text-white p-2 rounded-lg"><i class="fas fa-check mr-1"></i>Ok</button>
+            </div>
+            <div id="submitLoader" class="loader mt-4"></div>
+        </div>
+    </div>
+
+    <div id="printArea" style="display:none;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="/pos-sheets-integration.js"></script>
+</body>
+</html>
