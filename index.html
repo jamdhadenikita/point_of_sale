@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Login</title>
+    <title>Bakery POS - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -56,8 +56,8 @@
                         <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-                <p class="text-light/80">Enter your mobile number to continue</p>
+                <h1 class="text-3xl font-bold text-white mb-2">Bakery POS</h1>
+                <p class="text-light/80">Enter mobile number to continue</p>
             </div>
 
             <form id="mobileLoginForm" class="space-y-6">
@@ -68,7 +68,7 @@
                             type="tel" 
                             id="mobileNumber" 
                             class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-light/50 focus:outline-none focus:ring-2 focus:ring-light focus:border-transparent transition-all duration-300"
-                            placeholder="Enter your mobile number"
+                            placeholder="Enter 10-digit mobile"
                             maxlength="10"
                             required
                         >
@@ -98,7 +98,7 @@
             </form>
 
             <div class="mt-6 text-center">
-                <p class="text-light/60 text-sm">Secure login with mobile verification</p>
+                <p class="text-light/60 text-sm">Demo: Use any 10-digit number</p>
             </div>
         </div>
 
@@ -110,7 +110,7 @@
                 </svg>
             </div>
             <h2 class="text-2xl font-bold text-white mb-2">Login Successful!</h2>
-            <p class="text-light/80 mb-4">Welcome! Redirecting to your dashboard...</p>
+            <p class="text-light/80 mb-4">Redirecting to POS...</p>
             <div class="flex justify-center">
                 <div class="w-8 h-8 border-4 border-light border-t-transparent rounded-full animate-spin"></div>
             </div>
@@ -118,7 +118,7 @@
     </div>
     
     <script>
-        // Valid mobile numbers for demo (you can modify these)
+        // Valid mobile numbers for demo
         const validNumbers = ['1234567890', '9876543210', '1111111111', '0000000000'];
         
         const loginForm = document.getElementById('mobileLoginForm');
@@ -127,13 +127,11 @@
         const loginBtnText = document.getElementById('loginBtnText');
         const loginSpinner = document.getElementById('loginSpinner');
         const errorMessage = document.getElementById('errorMessage');
-        const loginContainer = document.getElementById('loginContainer');
         const successMessage = document.getElementById('successMessage');
 
         // Check if user is already logged in
         const isLoggedIn = sessionStorage.getItem('isLoggedIn');
         if (isLoggedIn === 'true') {
-            // If already logged in, redirect to POS dashboard
             window.location.href = 'pos-sheets-integration.html';
         }
 
@@ -158,7 +156,7 @@
             
             // Validation
             if (!mobileNumber) {
-                showError('Please enter your mobile number');
+                showError('Please enter mobile number');
                 return;
             }
             
@@ -172,18 +170,19 @@
             
             // Simulate API call delay
             setTimeout(() => {
-                if (validNumbers.includes(mobileNumber)) {
+                // For demo, accept any 10-digit number
+                if (mobileNumber.length === 10) {
                     // Save login state and redirect
                     sessionStorage.setItem('isLoggedIn', 'true');
                     showSuccess();
                     setTimeout(() => {
                         window.location.href = 'pos-sheets-integration.html';
-                    }, 2000);
+                    }, 1500);
                 } else {
-                    showError('Invalid mobile number. Please try again.');
+                    showError('Invalid mobile number');
                     showLoading(false);
                 }
-            }, 1500);
+            }, 1000);
         });
 
         function showError(message) {
@@ -192,7 +191,6 @@
             errorMessage.classList.add('fade-in');
             mobileInput.classList.add('shake');
             
-            // Remove shake animation after it completes
             setTimeout(() => {
                 mobileInput.classList.remove('shake');
             }, 500);
@@ -213,10 +211,7 @@
         }
 
         function showSuccess() {
-            // Hide login form
             document.getElementById('loginForm').classList.add('hidden');
-            
-            // Show success message
             successMessage.classList.remove('hidden');
             successMessage.classList.add('fade-in');
         }

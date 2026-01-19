@@ -22,15 +22,13 @@
         }
     </script>
 
-    <!-- Add this at the top of pos-sheets-integration.html head section -->
+    <!-- Login Check -->
     <script>
-        // Check if logged in
         const isLoggedIn = sessionStorage.getItem('isLoggedIn');
         if (isLoggedIn !== 'true') {
-            window.location.href = 'index.html'; // Redirect to login if not logged in
+            window.location.href = 'index.html';
         }
         
-        // Logout function
         function logout() {
             sessionStorage.removeItem('isLoggedIn');
             window.location.href = 'index.html';
@@ -83,19 +81,32 @@
             font-size: 10px;
             font-weight: bold;
         }
+        #customerDetails {
+            transition: all 0.3s ease;
+        }
+        #toggleCustomerDetails:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body class="bg-gray-50 overflow-x-hidden">
-    <!-- SIDEBAR AND NAVIGATION (same as original) -->
+    <!-- SIDEBAR -->
     <div class="fixed left-0 top-0 bg-dark text-white w-64 h-full flex-shrink-0 hidden md:flex flex-col sidebar-transition z-30" id="sidebar">
-        <div class="p-4 border-b border-gray-700">
-            <div><h2 class="text-xl font-bold text-primary">TheHome Bakery</h2><p class="text-sm text-gray-500">by Anjali</p></div>
+        <div class="w-64 h-20 rounded-lg  flex items-center justify-center overflow-hidden ">
+            <img src="/kunash_logo.png" alt="Bakery Logo" class="w-32 h-full object-cover">
         </div>
+
         <nav class="flex-1 p-4 overflow-y-auto">
-            <ul class="space-y-2"><li><a href="#" class="flex items-center space-x-3 p-3 rounded-lg bg-primary text-dark font-medium"><i class="fas fa-cash-register"></i><span>POS System</span></a></li></ul>
+            <ul class="space-y-2">
+                <li><a href="#" class="flex items-center space-x-3 p-3 rounded-lg bg-primary text-dark font-medium">
+                    <i class="fas fa-cash-register"></i><span>POS System</span>
+                </a></li>
+            </ul>
         </nav>
         <div class="p-4 border-t border-gray-700">
-            <a href="/login.html" id="logoutBtn" class="hover:text-white text-gray-800 flex items-center space-x-3 p-3 rounded-lg border border-gray-500 hover:bg-primary"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            <button onclick="logout()" class="w-full hover:text-white text-gray-800 flex items-center space-x-3 p-3 rounded-lg border border-gray-500 hover:bg-primary">
+                <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+            </button>
         </div>
     </div>
 
@@ -104,68 +115,114 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
                     <h1 class="text-2xl font-bold text-gray-800">POS System</h1>
-                    <button id="refreshProducts" class="bg-primary text-dark px-3 py-1 rounded-lg hover:bg-secondary hover:text-white text-sm"><i class="fas fa-sync-alt mr-1"></i>Refresh Data</button>
                 </div>
                 <div class="flex items-center space-x-4">
                     <span class="text-sm text-gray-600">Cashier: Admin</span>
-                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center"><i class="fas fa-user text-white text-sm"></i></div>
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
                 </div>
             </div>
         </nav>
 
         <div class="p-6">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Products Panel -->
                 <div class="lg:col-span-2 bg-white rounded-lg shadow-sm p-5">
                     <h2 class="text-xl font-semibold mb-4">Product Search</h2>
                     <div class="relative mb-4">
                         <input type="text" id="productSearch" placeholder="Search products..." class="w-[60%] p-3 pl-10 border rounded-lg">
                         <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
                     </div>
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        <!-- <button class="category-btn active bg-primary text-dark px-4 py-2 rounded-lg" data-category="all">All</button>
-                        <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="CAKE">Cakes</button>
-                        <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="PASTRY">Electronics</button>
-                        <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="COOKIE">Vegetables</button> -->
-                        <!-- <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="DESSERT">Desserts</button>
-                        <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="BEVERAGE">Beverages</button>
-                        <button class="category-btn bg-gray-200 px-4 py-2 rounded-lg" data-category="PROPZ">Props</button> -->
+
+                    <button id="refreshProducts" class="bg-primary text-dark px-3 py-1 rounded-lg hover:bg-secondary hover:text-white text-sm">
+                        <i class="fas fa-sync-alt mr-1"></i>Refresh Data
+                    </button>
+                    
+                    <div id="loadingProducts" class="text-center py-8" style="display:none;">
+                        <div class="loader show mx-auto"></div>
+                        <p class="text-gray-600 mt-4">Loading products...</p>
                     </div>
-                    <div id="loadingProducts" class="text-center py-8" style="display:none;"><div class="loader show mx-auto"></div><p class="text-gray-600 mt-4">Loading products...</p></div>
+                    
                     <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 h-[600px] overflow-y-auto"></div>
                 </div>
 
+                <!-- Cart Panel -->
                 <div class="bg-white rounded-lg shadow-sm p-6">
                     <h2 class="text-xl font-semibold mb-4">Shopping Cart</h2>
                     <div id="cartItems" class="mb-6 max-h-64 overflow-y-auto"></div>
+                    
                     <div class="border-t pt-4 mb-6">
-                        <div class="flex justify-between mb-2"><span>Subtotal:</span><span id="subtotal">₹0.00</span></div>
-                        <div class="flex justify-between mb-2"><span>Discount:</span><span id="discountAmount">₹0.00</span></div>
-                        <div class="flex justify-between mb-2"><span>GST (5%):</span><span id="gstAmount">₹0.00</span></div>
-                        <div class="border-t pt-2 flex justify-between font-bold text-lg"><span>Total:</span><span id="total" class="text-primary">₹0.00</span></div>
-                    </div>
-                    <div class="mb-6">
-                        <div class="flex gap-2">
-                            <input type="text" id="customerName" placeholder="Customer Name" class="w-full p-3 border rounded-lg mb-2">
-                            <input type="text" id="tableNumber" placeholder="Table" class="w-[88px] p-3 border rounded-lg mb-2">
+                        <div class="flex justify-between mb-2">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">₹0.00</span>
                         </div>
-                        <input type="text" id="customerMobile" placeholder="Mobile" class="w-full p-3 border rounded-lg mb-2">
-                        <div class="flex gap-2">
-                            <input type="number" id="discount" placeholder="Discount" class="w-full p-3 border rounded-lg">
-                            <select id="discountType" class="w-[100px] p-3 border rounded-lg"><option value="percent">%</option><option value="fixed">Rs</option></select>
+                        <div class="flex justify-between mb-2">
+                            <span>Discount:</span>
+                            <span id="discountAmount">₹0.00</span>
+                        </div>
+                        <div class="border-t pt-2 flex justify-between font-bold text-lg">
+                            <span>Total:</span>
+                            <span id="total" class="text-primary">₹0.00</span>
                         </div>
                     </div>
+                    
+                    <!-- Optional Customer Details -->
+                    <div class="mb-4">
+                        <button type="button" id="toggleCustomerDetails" class="text-primary text-sm flex items-center">
+                            <i class="fas fa-user-plus mr-1"></i>
+                            Add Customer Details (Optional)
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        <div id="customerDetails" class="mt-2 hidden">
+                            <input type="text" id="customerName" placeholder="Customer Name" class="w-full p-2 border rounded-lg mb-2 text-sm">
+                            <input type="text" id="customerMobile" placeholder="Mobile" class="w-full p-2 border rounded-lg text-sm">
+                        </div>
+                    </div>
+                    
+                    <!-- Table Number -->
+                    <div class="mb-4">
+                        <input type="text" id="tableNumber" placeholder="Table (Optional)" class="w-full p-2 border rounded-lg text-sm">
+                    </div>
+                    
+                    <!-- Discount -->
+                    <div class="mb-4">
+                        <div class="flex gap-2">
+                            <input type="number" id="discount" placeholder="Discount" class="flex-1 p-2 border rounded-lg text-sm" value="0">
+                            <select id="discountType" class="w-20 p-2 border rounded-lg text-sm">
+                                <option value="percent">%</option>
+                                <option value="fixed">Rs</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method -->
                     <div class="mb-6">
-                        <h3 class="font-semibold mb-3">Payment Method</h3>
+                        <h3 class="font-semibold mb-2 text-sm">Payment Method</h3>
                         <div class="grid grid-cols-2 gap-2">
-                            <button class="payment-method active bg-primary text-dark p-3 rounded-lg" data-method="cash"><i class="fas fa-money-bill-wave"></i><span class="text-sm">Cash</span></button>
-                            <button class="payment-method bg-gray-200 p-3 rounded-lg" data-method="upi"><i class="fab fa-google-pay"></i><span class="text-sm">UPI</span></button>
+                            <button class="payment-method active bg-primary text-dark p-2 rounded-lg text-sm" data-method="cash">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <span class="text-xs">Cash</span>
+                            </button>
+                            <button class="payment-method bg-gray-200 p-2 rounded-lg text-sm" data-method="upi">
+                                <i class="fab fa-google-pay"></i>
+                                <span class="text-xs">UPI</span>
+                            </button>
                         </div>
                     </div>
+                    
+                    <!-- Action Buttons -->
                     <div class="space-y-3">
-                        <button id="processPayment" class="w-full bg-green-700 text-white p-4 rounded-lg font-semibold disabled:bg-gray-400" disabled><i class="fas fa-credit-card mr-2"></i>Process Payment</button>
+                        <button id="processPayment" class="w-full bg-green-700 text-white p-3 rounded-lg font-semibold disabled:bg-gray-400 text-sm" disabled>
+                            <i class="fas fa-credit-card mr-2"></i>Process Payment
+                        </button>
                         <div class="grid grid-cols-2 gap-2">
-                            <button id="clearCart" class="bg-red-700 text-white p-2 rounded-lg"><i class="fas fa-trash mr-1"></i>Clear</button>
-                            <button id="printReceipt" class="bg-gray-700 text-white p-2 rounded-lg"><i class="fas fa-print mr-1"></i>Receipt</button>
+                            <button id="clearCart" class="bg-red-700 text-white p-2 rounded-lg text-sm">
+                                <i class="fas fa-trash mr-1"></i>Clear
+                            </button>
+                            <button id="printReceipt" class="bg-gray-700 text-white p-2 rounded-lg text-sm">
+                                <i class="fas fa-print mr-1"></i>Receipt
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -180,7 +237,9 @@
                 <i class="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
                 <h3 class="text-xl font-semibold mb-2">Processing Payment</h3>
                 <p class="text-gray-600 mb-4">Please wait...</p>
-                <div class="bg-gray-200 rounded-full h-2"><div id="progressBar" class="bg-primary h-2 rounded-full" style="width:0%"></div></div>
+                <div class="bg-gray-200 rounded-full h-2">
+                    <div id="progressBar" class="bg-primary h-2 rounded-full" style="width:0%"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -189,12 +248,18 @@
         <div class="bg-white overflow-y-auto h-[520px] rounded-lg p-6 max-w-md w-full mx-4 flex flex-col">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold">Receipt</h3>
-                <button id="closeReceipt" class="text-gray-500"><i class="fas fa-times"></i></button>
+                <button id="closeReceipt" class="text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div id="receiptContent" class="receipt-print text-sm border p-4 mb-4"></div>
             <div class="flex space-x-2">
-                <button id="printReceiptBtn" class="flex-1 bg-primary text-dark p-2 rounded-lg"><i class="fas fa-print mr-1"></i>Print</button>
-                <button id="submitReceiptBtn" class="flex-1 bg-green-700 text-white p-2 rounded-lg"><i class="fas fa-check mr-1"></i>Ok</button>
+                <button id="printReceiptBtn" class="flex-1 bg-primary text-dark p-2 rounded-lg">
+                    <i class="fas fa-print mr-1"></i>Print
+                </button>
+                <button id="submitReceiptBtn" class="flex-1 bg-green-700 text-white p-2 rounded-lg">
+                    <i class="fas fa-check mr-1"></i>Done
+                </button>
             </div>
             <div id="submitLoader" class="loader mt-4"></div>
         </div>
@@ -203,6 +268,657 @@
     <div id="printArea" style="display:none;"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script src="/pos-sheets-integration.js"></script>
+    <script>
+        // pos-sheets-integration.js
+        // ===== GOOGLE SHEETS CONFIGURATION =====
+        const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzDobR3xCuzsH5mOWqE7T8YWjcneMZ4NgeyWw7mCmOWViq8bDBfzuNqz0ENQ6f07GjlUg/exec';
+        const ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyul6UkH5uehnc-hjATTk8Hg_T6c6Xo75bUKYczonF8Ie-yNooeH5BBlfWJBD4v9SBSlw/exec';
+
+        // Global Variables
+        let bakeryProducts = [];
+        let cart = [];
+        let currentPaymentMethod = 'cash';
+        let discountType = 'percent';
+        let tempCart = [];
+        let tempSubtotal = 0;
+        let tempDiscountAmount = 0;
+        let tempDiscountType = 'percent';
+        let tempCustomerName = '';
+        let tempCustomerMobile = '';
+
+        // ===== TOAST NOTIFICATION =====
+        function showToast(message, type = 'info') {
+            const colors = { 
+                success: '#059669', 
+                error: '#dc2626', 
+                info: '#3b82f6',
+                warning: '#f59e0b'
+            };
+            
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: 'top',
+                position: 'right',
+                backgroundColor: colors[type] || colors.info,
+                stopOnFocus: true
+            }).showToast();
+        }
+
+        // ===== CACHE MANAGEMENT =====
+        const CACHE_KEY = 'bakeryProductsCache';
+        const CACHE_TIME_KEY = 'bakeryProductsCacheTime';
+        const CACHE_DURATION = 3600000;
+
+        function saveToCache(products) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(products));
+                localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+            } catch (e) {
+                console.warn('Failed to save to cache:', e);
+            }
+        }
+
+        function loadFromCache() {
+            try {
+                const cachedData = localStorage.getItem(CACHE_KEY);
+                const cacheTime = localStorage.getItem(CACHE_TIME_KEY);
+                
+                if (!cachedData || !cacheTime) return null;
+                
+                const age = Date.now() - parseInt(cacheTime);
+                if (age > CACHE_DURATION) {
+                    localStorage.removeItem(CACHE_KEY);
+                    localStorage.removeItem(CACHE_TIME_KEY);
+                    return null;
+                }
+                
+                return JSON.parse(cachedData);
+            } catch (e) {
+                console.warn('Failed to load from cache:', e);
+                return null;
+            }
+        }
+
+        // ===== PRODUCT LOADING =====
+        async function loadProductsFromSheets() {
+            const loadingProducts = document.getElementById('loadingProducts');
+            const productsGrid = document.getElementById('productsGrid');
+            
+            if (loadingProducts) loadingProducts.style.display = 'block';
+            if (productsGrid) productsGrid.innerHTML = '';
+            
+            // Try cache first
+            const cachedProducts = loadFromCache();
+            if (cachedProducts && cachedProducts.length > 0) {
+                bakeryProducts = cachedProducts;
+                displayProducts(bakeryProducts);
+                if (loadingProducts) loadingProducts.style.display = 'none';
+                showToast(`${bakeryProducts.length} products loaded from cache`, 'info');
+                setTimeout(refreshProductsInBackground, 1000);
+                return;
+            }
+            
+            // Load from Google Sheets
+            try {
+                const callbackName = 'handleProducts_' + Date.now();
+                const url = `${GOOGLE_SHEETS_URL}?callback=${callbackName}&t=${Date.now()}`;
+                
+                const data = await new Promise((resolve, reject) => {
+                    const timeoutId = setTimeout(() => {
+                        cleanup();
+                        reject(new Error('Timeout loading products'));
+                    }, 15000);
+                    
+                    function cleanup() {
+                        clearTimeout(timeoutId);
+                        if (window[callbackName]) delete window[callbackName];
+                        const script = document.getElementById(callbackName);
+                        if (script) script.remove();
+                    }
+                    
+                    window[callbackName] = function(response) {
+                        cleanup();
+                        resolve(response);
+                    };
+                    
+                    const script = document.createElement('script');
+                    script.src = url;
+                    script.id = callbackName;
+                    script.onerror = function() {
+                        cleanup();
+                        reject(new Error('Failed to load products'));
+                    };
+                    
+                    document.head.appendChild(script);
+                });
+                
+                if (data && data.success && Array.isArray(data.products) && data.products.length > 0) {
+                    bakeryProducts = data.products.map((product, index) => ({
+                        id: product.id || index + 1,
+                        name: product.name || 'Unnamed Product',
+                        price: parseFloat(product.price) || 0,
+                        category: product.category || 'OTHER',
+                        sku: product.sku || 'N/A',
+                        image: product.image || '🍰',
+                        discount: parseFloat(product.discount) || 0
+                    }));
+                    
+                    saveToCache(bakeryProducts);
+                    displayProducts(bakeryProducts);
+                    showToast(`${bakeryProducts.length} products loaded!`, 'success');
+                } else {
+                    throw new Error('No products in response');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                if (loadingProducts) loadingProducts.style.display = 'none';
+                if (productsGrid) {
+                    productsGrid.innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <i class="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Failed to Load Products</h3>
+                            <p class="text-gray-600 mb-4">${error.message}</p>
+                            <button onclick="loadProductsFromSheets()" class="mt-4 bg-primary text-white px-6 py-2 rounded-lg hover:bg-secondary">
+                                <i class="fas fa-redo mr-2"></i>Retry
+                            </button>
+                        </div>
+                    `;
+                }
+                showToast('Failed to load products', 'error');
+            } finally {
+                if (loadingProducts) loadingProducts.style.display = 'none';
+            }
+        }
+
+        function refreshProductsInBackground() {
+            const callbackName = 'refresh_' + Date.now();
+            
+            window[callbackName] = function(data) {
+                if (data && data.success && data.products) {
+                    const processed = data.products.map((p, i) => ({
+                        id: p.id || i + 1,
+                        name: p.name || 'Unnamed',
+                        price: parseFloat(p.price) || 0,
+                        category: p.category || 'OTHER',
+                        sku: p.sku || 'N/A',
+                        image: p.image || '🍰',
+                        discount: parseFloat(p.discount) || 0
+                    }));
+                    saveToCache(processed);
+                }
+                delete window[callbackName];
+                const script = document.getElementById(callbackName);
+                if (script) script.remove();
+            };
+            
+            const script = document.createElement('script');
+            script.src = `${GOOGLE_SHEETS_URL}?callback=${callbackName}&t=${Date.now()}`;
+            script.id = callbackName;
+            script.onerror = () => {
+                delete window[callbackName];
+                script.remove();
+            };
+            document.head.appendChild(script);
+        }
+
+        // ===== DISPLAY PRODUCTS =====
+        function displayProducts(productsToShow) {
+            const productsGrid = document.getElementById('productsGrid');
+            if (!productsGrid) return;
+            
+            if (!productsToShow || productsToShow.length === 0) {
+                productsGrid.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <i class="fas fa-box-open text-4xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-500">No products available</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            productsGrid.innerHTML = productsToShow.map(product => {
+                const finalPrice = product.discount > 0 
+                    ? product.price * (1 - product.discount / 100) 
+                    : product.price;
+                
+                const originalPrice = product.discount > 0 
+                    ? `<p class="text-xs text-gray-400 line-through text-center">₹${product.price.toFixed(2)}</p>` 
+                    : '';
+                
+                const badge = product.discount > 0 
+                    ? `<span class="discount-badge">${product.discount}% OFF</span>` 
+                    : '';
+                
+                return `
+                    <div class="product-card bg-gray-50 p-4 rounded-lg hover:shadow-md transition cursor-pointer border relative" 
+                         onclick="addToCart(${product.id})">
+                        ${badge}
+                        <div class="text-4xl text-center mb-2">
+                            <div class="w-16 h-16 mx-auto flex items-center justify-center text-3xl">
+                               <img src="${product.image}" alt="${product.name}" class="w-full h-full object-contain">
+                            </div>
+                        </div>
+                        <h3 class="font-semibold text-sm mb-1 text-center text-gray-800 truncate">${product.name}</h3>
+                        ${originalPrice}
+                        <p class="text-lg font-bold text-primary text-center">₹${finalPrice.toFixed(2)}</p>
+                        <p class="text-xs text-gray-500 text-center mt-1">${product.sku}</p>
+                        <div class="mt-2 text-center">
+                            <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">${product.category}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ===== CART FUNCTIONS =====
+        function addToCart(productId) {
+            const product = bakeryProducts.find(p => p.id == productId);
+            if (!product) {
+                showToast('Product not found!', 'error');
+                return;
+            }
+            
+            const discountedPrice = product.discount > 0 
+                ? product.price * (1 - product.discount / 100) 
+                : product.price;
+            
+            const existingItem = cart.find(item => item.id == productId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+                showToast(`${product.name} qty: ${existingItem.quantity}`, 'info');
+            } else {
+                cart.push({
+                    ...product,
+                    quantity: 1,
+                    finalPrice: discountedPrice,
+                    originalPrice: product.price
+                });
+                showToast(`${product.name} added`, 'success');
+            }
+            
+            updateCartDisplay();
+            updateTotals();
+        }
+
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cartItems');
+            const processPaymentBtn = document.getElementById('processPayment');
+            
+            if (!cartItems) return;
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-shopping-cart text-4xl mb-2 opacity-50"></i>
+                        <p>Cart is empty</p>
+                    </div>
+                `;
+                if (processPaymentBtn) processPaymentBtn.disabled = true;
+                return;
+            }
+            
+            cartItems.innerHTML = cart.map(item => {
+                const priceDisplay = item.discount > 0 
+                    ? `<p class="text-xs text-gray-600">₹${item.finalPrice.toFixed(2)} <span class="text-red-500">(${item.discount}% off)</span></p>`
+                    : `<p class="text-xs text-gray-600">₹${item.finalPrice.toFixed(2)} each</p>`;
+                
+                return `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2 border">
+                        <div class="flex items-center flex-1 min-w-0">
+                            <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-contain mr-3">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-sm truncate">${item.name}</p>
+                                ${priceDisplay}
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <button class="bg-red-700 text-white w-6 h-6 rounded-full text-xs" 
+                                    onclick="changeQuantity(${item.id}, -1)">-</button>
+                            <span class="mx-2 font-semibold min-w-[20px] text-center">${item.quantity}</span>
+                            <button class="bg-green-700 text-white w-6 h-6 rounded-full text-xs" 
+                                    onclick="changeQuantity(${item.id}, 1)">+</button>
+                            <button class="ml-2 text-red-700" onclick="removeFromCart(${item.id})">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            if (processPaymentBtn) processPaymentBtn.disabled = false;
+        }
+
+        function changeQuantity(productId, change) {
+            const item = cart.find(i => i.id == productId);
+            if (!item) return;
+            
+            item.quantity += change;
+            
+            if (item.quantity <= 0) {
+                removeFromCart(productId);
+                return;
+            }
+            
+            updateCartDisplay();
+            updateTotals();
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id != productId);
+            updateCartDisplay();
+            updateTotals();
+            showToast('Item removed', 'info');
+        }
+
+        function updateTotals() {
+            const discountEl = document.getElementById('discount');
+            const subtotal = cart.reduce((sum, item) => sum + (item.finalPrice * item.quantity), 0);
+            const discountInput = discountEl ? parseFloat(discountEl.value) || 0 : 0;
+            let discountAmount = 0;
+            
+            if (discountType === 'percent') {
+                discountAmount = subtotal * (discountInput / 100);
+            } else {
+                discountAmount = Math.min(discountInput, subtotal);
+            }
+            
+            const total = Math.max(0, subtotal - discountAmount);
+            
+            const subtotalEl = document.getElementById('subtotal');
+            const discountAmountEl = document.getElementById('discountAmount');
+            const totalEl = document.getElementById('total');
+            
+            if (subtotalEl) subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
+            if (discountAmountEl) discountAmountEl.textContent = `-₹${discountAmount.toFixed(2)}`;
+            if (totalEl) totalEl.textContent = `₹${total.toFixed(2)}`;
+        }
+
+        function clearCart() {
+            if (cart.length === 0) {
+                showToast('Cart is already empty', 'info');
+                return;
+            }
+            
+            if (confirm('Clear cart?')) {
+                cart = [];
+                const discountEl = document.getElementById('discount');
+                if (discountEl) discountEl.value = '0';
+                updateCartDisplay();
+                updateTotals();
+                showToast('Cart cleared', 'success');
+            }
+        }
+
+        // ===== PAYMENT =====
+        function processPayment() {
+            if (cart.length === 0) {
+                showToast('Cart is empty!', 'error');
+                return;
+            }
+            
+            // Customer details are optional
+            const customerName = document.getElementById('customerName').value.trim() || 'Walk-in Customer';
+            const customerMobile = document.getElementById('customerMobile').value.trim() || 'N/A';
+            
+            const paymentModal = document.getElementById('paymentModal');
+            paymentModal.classList.add('show');
+            
+            // Store temp data
+            const discountEl = document.getElementById('discount');
+            tempCart = [...cart];
+            tempSubtotal = cart.reduce((sum, item) => sum + (item.finalPrice * item.quantity), 0);
+            const discountInput = discountEl ? parseFloat(discountEl.value) || 0 : 0;
+            tempDiscountAmount = discountType === 'percent' ? tempSubtotal * (discountInput / 100) : Math.min(discountInput, tempSubtotal);
+            tempDiscountType = discountType;
+            tempCustomerName = customerName;
+            tempCustomerMobile = customerMobile;
+            
+            // Simulate processing
+            let progress = 0;
+            const progressBar = document.getElementById('progressBar');
+            const interval = setInterval(() => {
+                progress += 20;
+                if (progressBar) progressBar.style.width = Math.min(progress, 100) + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        paymentModal.classList.remove('show');
+                        showReceipt();
+                        clearCart();
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        // ===== RECEIPT =====
+        function showReceipt() {
+            const receiptContent = document.getElementById('receiptContent');
+            const receiptModal = document.getElementById('receiptModal');
+            const printArea = document.getElementById('printArea');
+            
+            const now = new Date();
+            const receiptNumber = 'R' + Date.now().toString().slice(-6);
+            const orderId = 'ORD' + Date.now().toString().slice(-6);
+            const tableNumber = document.getElementById('tableNumber').value.trim() || 'N/A';
+            const total = Math.max(0, tempSubtotal - tempDiscountAmount);
+            
+            const receiptHTML = `
+                <div class="text-center border-b pb-2 mb-2">
+                    <h3 class="font-bold text-lg">TheHome Bakery</h3>
+                    <p class="text-xs">G-004, Aldea Espanola Phase 6 & 7</p>
+                    <p class="text-xs">opp. Orchid Hotel, Mahalunge, Pune</p>
+                    <p class="text-xs">Contact: 9537999898</p>
+                </div>
+                <div class="mb-2 text-xs">
+                    <p><strong>Order ID:</strong> ${orderId}</p>
+                    <p><strong>Receipt:</strong> ${receiptNumber}</p>
+                    <p><strong>Date:</strong> ${now.toLocaleDateString()}</p>
+                    <p><strong>Time:</strong> ${now.toLocaleTimeString()}</p>
+                    ${tempCustomerName !== 'Walk-in Customer' ? `<p><strong>Customer:</strong> ${tempCustomerName}</p>` : ''}
+                    ${tempCustomerMobile !== 'N/A' ? `<p><strong>Mobile:</strong> ${tempCustomerMobile}</p>` : ''}
+                    <p><strong>Payment:</strong> ${currentPaymentMethod.toUpperCase()}</p>
+                </div>
+                <div class="border-t pt-1 mb-2 text-xs">
+                    ${tempCart.map(item => `
+                        <div class="flex justify-between py-0.5">
+                            <span>${item.name.substring(0, 20)} x${item.quantity}</span>
+                            <span>₹${(item.finalPrice * item.quantity).toFixed(2)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="border-t pt-1 text-xs">
+                    <div class="flex justify-between"><span>Subtotal:</span><span>₹${tempSubtotal.toFixed(2)}</span></div>
+                    <div class="flex justify-between"><span>Discount:</span><span>-₹${tempDiscountAmount.toFixed(2)}</span></div>
+                    <div class="flex justify-between font-bold border-t pt-1"><span>Total:</span><span>₹${total.toFixed(2)}</span></div>
+                </div>
+                <div class="text-center mt-2 pt-2 border-t text-xs">
+                    <p>Thank you!</p>
+                    <p>Visit Again! 😊</p>
+                </div>
+            `;
+            
+            if (receiptContent) receiptContent.innerHTML = receiptHTML;
+            if (printArea) printArea.innerHTML = receiptHTML;
+            receiptModal.classList.add('show');
+        }
+
+        async function handleSubmit() {
+            const submitLoader = document.getElementById('submitLoader');
+            const submitReceiptBtn = document.getElementById('submitReceiptBtn');
+            
+            submitLoader.classList.add('show');
+            submitReceiptBtn.disabled = true;
+            
+            const now = new Date();
+            const receiptNumber = 'R' + Date.now().toString().slice(-6);
+            const orderId = 'ORD' + Date.now().toString().slice(-6);
+            const tableNumber = document.getElementById('tableNumber').value.trim() || 'N/A';
+            const total = Math.max(0, tempSubtotal - tempDiscountAmount);
+            
+            const payload = {
+                orderId,
+                customerName: tempCustomerName,
+                customerMobile: tempCustomerMobile,
+                orderItems: tempCart.map(item => ({
+                    itemName: item.name,
+                    quantity: item.quantity,
+                    price: item.finalPrice
+                })),
+                paymentMode: currentPaymentMethod.toUpperCase(),
+                paymentStatus: 'PAID',
+                totalAmount: total,
+                date: now.toISOString().split('T')[0],
+                time: now.toLocaleTimeString(),
+                receiptNumber,
+                tableNumber: tableNumber,
+                discountAmount: tempDiscountAmount,
+                discountType: tempDiscountType
+            };
+            
+            try {
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(payload));
+                
+                await fetch(ORDER_SUBMISSION_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData
+                });
+                
+                showToast('Order submitted!', 'success');
+                setTimeout(() => {
+                    document.getElementById('receiptModal').classList.remove('show');
+                }, 1500);
+            } catch (error) {
+                console.error('Submission error:', error);
+                showToast('Order saved locally', 'warning');
+                setTimeout(() => {
+                    document.getElementById('receiptModal').classList.remove('show');
+                }, 1500);
+            } finally {
+                submitLoader.classList.remove('show');
+                submitReceiptBtn.disabled = false;
+            }
+        }
+
+        // ===== FILTER =====
+        function filterProducts() {
+            const productSearch = document.getElementById('productSearch');
+            const searchTerm = productSearch ? productSearch.value.toLowerCase() : '';
+            let filtered = bakeryProducts;
+            
+            if (searchTerm) {
+                filtered = filtered.filter(p =>
+                    p.name.toLowerCase().includes(searchTerm) ||
+                    p.sku.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            displayProducts(filtered);
+        }
+
+        // ===== EVENT LISTENERS =====
+        function setupEventListeners() {
+            const productSearch = document.getElementById('productSearch');
+            if (productSearch) {
+                productSearch.addEventListener('input', filterProducts);
+            }
+            
+            document.querySelectorAll('.payment-method').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.payment-method').forEach(b => {
+                        b.classList.remove('active', 'bg-primary', 'text-dark');
+                        b.classList.add('bg-gray-200');
+                    });
+                    e.target.classList.add('active', 'bg-primary', 'text-dark');
+                    currentPaymentMethod = e.target.dataset.method;
+                });
+            });
+            
+            const discountEl = document.getElementById('discount');
+            if (discountEl) {
+                discountEl.addEventListener('input', updateTotals);
+            }
+            
+            const discountTypeEl = document.getElementById('discountType');
+            if (discountTypeEl) {
+                discountTypeEl.addEventListener('change', () => {
+                    discountType = discountTypeEl.value;
+                    updateTotals();
+                });
+            }
+            
+            const clearCartBtn = document.getElementById('clearCart');
+            if (clearCartBtn) clearCartBtn.addEventListener('click', clearCart);
+            
+            const processPaymentBtn = document.getElementById('processPayment');
+            if (processPaymentBtn) processPaymentBtn.addEventListener('click', processPayment);
+            
+            const closeReceiptBtn = document.getElementById('closeReceipt');
+            if (closeReceiptBtn) closeReceiptBtn.addEventListener('click', () => {
+                document.getElementById('receiptModal').classList.remove('show');
+            });
+            
+            const submitReceiptBtn = document.getElementById('submitReceiptBtn');
+            if (submitReceiptBtn) submitReceiptBtn.addEventListener('click', handleSubmit);
+            
+            const printReceiptBtnModal = document.getElementById('printReceiptBtn');
+            if (printReceiptBtnModal) printReceiptBtnModal.addEventListener('click', () => window.print());
+            
+            const refreshProductsBtn = document.getElementById('refreshProducts');
+            if (refreshProductsBtn) {
+                refreshProductsBtn.addEventListener('click', () => {
+                    refreshProductsBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-1"></i>Refreshing...';
+                    refreshProductsBtn.disabled = true;
+                    localStorage.removeItem(CACHE_KEY);
+                    localStorage.removeItem(CACHE_TIME_KEY);
+                    loadProductsFromSheets().then(() => {
+                        refreshProductsBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i>Refresh Data';
+                        refreshProductsBtn.disabled = false;
+                    });
+                });
+            }
+            
+            // Toggle customer details
+            const toggleCustomerBtn = document.getElementById('toggleCustomerDetails');
+            const customerDetails = document.getElementById('customerDetails');
+            
+            if (toggleCustomerBtn && customerDetails) {
+                toggleCustomerBtn.addEventListener('click', () => {
+                    customerDetails.classList.toggle('hidden');
+                    const icon = toggleCustomerBtn.querySelector('.fa-chevron-down');
+                    if (icon) {
+                        icon.classList.toggle('fa-chevron-down');
+                        icon.classList.toggle('fa-chevron-up');
+                    }
+                });
+            }
+        }
+
+        // ===== INIT =====
+        function initializeApp() {
+            loadProductsFromSheets();
+            setupEventListeners();
+            updateCartDisplay();
+            updateTotals();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // Debug helper
+        window.debugPOS = {
+            clearCache: () => {
+                localStorage.removeItem(CACHE_KEY);
+                localStorage.removeItem(CACHE_TIME_KEY);
+                console.log('Cache cleared');
+            },
+            reload: () => loadProductsFromSheets(),
+            showCart: () => console.log(cart),
+            showProducts: () => console.log(bakeryProducts)
+        };
+    </script>
 </body>
 </html>
